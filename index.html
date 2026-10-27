@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<title>Mask Toolbox v0.4.1</title>
+
+<style>
+:root{
+  --bg:#080808;
+  --card:rgba(15,15,15,.88);
+  --card2:rgba(20,20,20,.92);
+  --text:#fff;
+  --muted:#858585;
+  --border:rgba(255,255,255,.10);
+  --green:#4ade80;
+  --green2:#22c55e;
+  --danger:#ff6b6b;
+  --shadow:0 20px 60px rgba(0,0,0,.45);
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+  overflow-x:hidden;
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.mask-bg{
+  position:fixed;
+  inset:0;
+  z-index:-10;
+  overflow:hidden;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(74,222,128,.055),transparent 28%),
+    radial-gradient(circle at 85% 80%,rgba(34,197,94,.035),transparent 30%),
+    #080808;
+}
+
+.mask-bg::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  opacity:.09;
+  background-image:
+    linear-gradient(rgba(74,222,128,.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(74,222,128,.10) 1px,transparent 1px);
+  background-size:42px 42px;
+  transform:perspective(600px) rotateX(55deg) translateY(30%);
+}
+
+.code{
+  position:absolute;
+  inset:-30%;
+  color:rgba(74,222,128,.09);
+  font-family:monospace;
+  font-size:12px;
+  line-height:1.8;
+  white-space:pre-wrap;
+  transform:rotate(-8deg);
+  user-select:none;
+}
+
+.code.one{
+  animation:drift 35s linear infinite;
+}
+
+.code.two{
+  opacity:.45;
+  transform:rotate(8deg);
+  animation:drift2 42s linear infinite;
+}
+
+.scanlines{
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(255,255,255,.012) 4px
+  );
+}
+
+.glow{
+  position:absolute;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  filter:blur(100px);
+  background:rgba(74,222,128,.035);
+}
+
+.glow.a{
+  left:-150px;
+  top:20%;
+}
+
+.glow.b{
+  right:-150px;
+  bottom:10%;
+}
+
+@keyframes drift{
+  from{transform:rotate(-8deg) translateY(0)}
+  to{transform:rotate(-8deg) translateY(-35%)}
+}
+
+@keyframes drift2{
+  from{transform:rotate(8deg) translateY(-20%)}
+  to{transform:rotate(8deg) translateY(20%)}
+}
+
+.app{
+  width:min(100%,620px);
+  margin:0 auto;
+  padding:20px 16px 60px;
+}
+
+.header{
+  padding:20px 4px 12px;
+}
+
+.logo{
+  font-size:42px;
+  font-weight:900;
+  letter-spacing:-2px;
+  line-height:1;
+}
+
+.logo span{
+  color:var(--green);
+}
+
+.subtitle{
+  color:var(--muted);
+  margin-top:9px;
+  font-size:14px;
+}
+
+.hero{
+  margin-top:16px;
+  padding:22px;
+  border:1px solid var(--border);
+  border-radius:26px;
+  background:rgba(10,10,10,.72);
+  backdrop-filter:blur(18px);
+  box-shadow:var(--shadow);
+}
+
+.hero-title{
+  font-size:25px;
+  font-weight:850;
+}
+
+.hero-text{
+  color:var(--muted);
+  line-height:1.55;
+  margin-top:8px;
+}
+
+.search{
+  width:100%;
+  margin-top:18px;
+  padding:15px 17px;
+  border-radius:17px;
+  border:1px solid var(--border);
+  outline:none;
+  background:#101010;
+  color:white;
+}
+
+.search:focus{
+  border-color:rgba(74,222,128,.5);
+}
+
+.categories{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:14px 0 5px;
+  scrollbar-width:none;
+}
+
+.categories::-webkit-scrollbar{
+  display:none;
+}
+
+.category{
+  flex:0 0 auto;
+  border:1px solid var(--border);
+  background:#111;
+  color:#aaa;
+  padding:9px 13px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.category.active{
+  background:var(--green);
+  color:#061009;
+  border-color:var(--green);
+}
+
+.section-title{
+  margin:25px 3px 11px;
+  font-size:13px;
+  color:#8d8d8d;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+}
+
+.tool{
+  position:relative;
+  min-height:125px;
+  padding:17px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--card);
+  backdrop-filter:blur(12px);
+  transition:.18s ease;
+}
+
+.tool:active{
+  transform:scale(.98);
+}
+
+.tool:hover{
+  border-color:rgba(74,222,128,.24);
+}
+
+.tool-icon{
+  font-size:24px;
+}
+
+.tool-name{
+  margin-top:10px;
+  font-weight:800;
+  font-size:15px;
+}
+
+.tool-desc{
+  margin-top:5px;
+  color:#777;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.star{
+  position:absolute;
+  top:12px;
+  right:12px;
+  border:0;
+  background:transparent;
+  color:#666;
+  font-size:17px;
+  padding:3px;
+}
+
+.star.active{
+  color:#ffd84d;
+}
+
+.panel{
+  margin-top:16px;
+  padding:21px;
+  border:1px solid var(--border);
+  border-radius:24px;
+  background:rgba(10,10,10,.9);
+  box-shadow:var(--shadow);
+}
+
+.back{
+  display:inline-block;
+  color:#999;
+  margin-bottom:14px;
+  font-size:14px;
+}
+
+.panel h2{
+  margin:0;
+  font-size:27px;
+}
+
+.panel p{
+  color:#858585;
+  line-height:1.5;
+}
+
+.label{
+  display:block;
+  margin:18px 0 8px;
+  color:#8d8d8d;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:1.4px;
+}
+
+.input,
+.select,
+.textarea{
+  width:100%;
+  border:1px solid var(--border);
+  background:#080808;
+  color:white;
+  border-radius:16px;
+  padding:15px;
+  outline:none;
+}
+
+.textarea{
+  min-height:150px;
+  resize:vertical;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus{
+  border-color:rgba(74,222,128,.55);
+}
+
+.row{
+  display:flex;
+  gap:10px;
+}
+
+.row>*{
+  flex:1;
+}
+
+.btn{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:15px;
+  margin-top:13px;
+  font-weight:850;
+  background:#222;
+  color:white;
+}
+
+.btn.primary{
+  background:var(--green);
+  color:#061009;
+}
+
+.btn.secondary{
+  border:1px solid var(--border);
+  background:#151515;
+}
+
+.btn:disabled{
+  opacity:.45;
+}
+
+.result{
+  margin-top:15px;
+  padding:15px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:#0b0b0b;
+  word-break:break-word;
+}
+
+.success{
+  color:var(--green);
+}
+
+.error{
+  color:var(--danger);
+}
+
+.muted{
+  color:#777;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.email-box{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.email-main{
+  font-size:18px;
+  font-weight:800;
+  word-break:break-all;
+}
+
+.message{
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  margin-top:10px;
+  background:#0c0c0c;
+}
+
+.message-subject{
+  font-weight:800;
+}
+
+.message-from{
+  color:#777;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.message-body{
+  margin-top:10px;
+  color:#ccc;
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:13px;
+}
+
+.qr{
+  display:flex;
+  justify-content:center;
+  padding:15px;
+}
+
+.footer{
+  text-align:center;
+  margin-top:45px;
+  color:#555;
+  font-size:12px;
+}
+
+.footer strong{
+  color:var(--green);
+}
+
+.theme{
+  position:fixed;
+  right:15px;
+  bottom:15px;
+  z-index:20;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:#111;
+  color:white;
+  box-shadow:var(--shadow);
+}
+
+body.light{
+  --bg:#f2f2f2;
+  --card:rgba(255,255,255,.88);
+  --card2:#fff;
+  --text:#111;
+  --muted:#666;
+  --border:rgba(0,0,0,.10);
+}
+
+body.light .mask-bg{
+  background:#f2f2f2;
+}
+
+body.light .hero,
+body.light .panel{
+  background:rgba(255,255,255,.88);
+}
+
+body.light .search,
+body.light .input,
+body.light .select,
+body.light .textarea,
+body.light .result,
+body.light .message{
+  background:#fff;
+  color:#111;
+}
+
+body.light .category,
+body.light .tool,
+body.light .btn.secondary{
+  background:#fff;
+  color:#222;
+}
+
+@media(max-width:430px){
+  .grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .logo{
+    font-size:38px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="mask-bg">
+  <div class="code one">
+01010110 01001111 01001001 01000100
+const mask = "toolbox";
+function generate(){ return random(); }
+01001001 01001110 01000110 01001111
+GET /domains
+POST /accounts
+POST /token
+GET /messages
+MASK TOOLBOX
+</div>
+
+  <div class="code two">
+MASK
+TOOLS
+SECURITY
+GENERATORS
+TEXT
+EMAIL
+UUID
+QR
+PASSWORD
+01010101 01010100 01001001 01001100
+</div>
+
+  <div class="scanlines"></div>
+  <div class="glow a"></div>
+  <div class="glow b"></div>
+</div>
+
+<div class="app">
+
+<header class="header">
+  <div class="logo">MASK<span>.</span></div>
+  <div class="subtitle">Free utility toolbox · v0.4.1</div>
+</header>
+
+<section id="home">
+
+  <div class="hero">
+    <div class="hero-title">Mask Toolbox</div>
+    <div class="hero-text">
+      Useful tools, generators and utilities in one place.
+    </div>
+
+    <input
+      id="search"
+      class="search"
+      placeholder="Search tools..."
+      autocomplete="off"
+    >
+  </div>
+
+  <div class="categories">
+    <button class="category active" data-cat="all">ALL</button>
+    <button class="category" data-cat="security">SECURITY</button>
+    <button class="category" data-cat="text">TEXT</button>
+    <button class="category" data-cat="generators">GENERATORS</button>
+    <button class="category" data-cat="other">OTHER</button>
+  </div>
+
+  <div id="quickSection">
+    <div class="section-title">Quick Tools</div>
+    <div class="grid" id="quickGrid"></div>
+  </div>
+
+  <div id="recentSection">
+    <div class="section-title">Recently Used</div>
+    <div class="grid" id="recentGrid"></div>
+  </div>
+
+  <div id="favoritesSection">
+    <div class="section-title">Favorites</div>
+    <div class="grid" id="favoritesGrid"></div>
+  </div>
+
+  <div class="section-title">All Tools</div>
+  <div class="grid" id="toolsGrid"></div>
+
+</section>
+
+<section id="toolPanel" class="panel hidden"></section>
+
+<div class="footer">
+  <strong>MASK</strong> TOOLBOX v0.4.1<br>
+  Free utility toolbox · built for Mask
+</div>
+
+</div>
+
+<button id="themeBtn" class="theme" aria-label="Toggle theme">☾</button>
+
+<script>
+/* =========================================================
+   MASK TOOLBOX v0.4.1
+   ========================================================= */
+
+const MAIL_API = "https://api.mail.tm";
+
+const tools = [
+  {
+    id:"password",
+    icon:"🔐",
+    name:"Password Generator",
+    desc:"Generate strong random passwords.",
+    cat:"security"
+  },
+  {
+    id:"strength",
+    icon:"🛡️",
+    name:"Password Strength",
+    desc:"Check password security.",
+    cat:"security"
+  },
+  {
+    id:"username",
+    icon:"👤",
+    name:"Username Generator",
+    desc:"Generate random usernames.",
+    cat:"generators"
+  },
+  {
+    id:"qr",
+    icon:"▦",
+    name:"QR Code",
+    desc:"Create QR codes instantly.",
+    cat:"generators"
+  },
+  {
+    id:"text",
+    icon:"✎",
+    name:"Text Tools",
+    desc:"Uppercase, lowercase and count.",
+    cat:"text"
+  },
+  {
+    id:"color",
+    icon:"🎨",
+    name:"Color Tools",
+    desc:"Generate random colors.",
+    cat:"other"
+  },
+  {
+    id:"number",
+    icon:"🔢",
+    name:"Number Generator",
+    desc:"Generate random numbers.",
+    cat:"generators"
+  },
+  {
+    id:"timer",
+    icon:"⏱️",
+    name:"Timer",
+    desc:"Simple countdown timer.",
+    cat:"other"
+  },
+  {
+    id:"date",
+    icon:"📅",
+    name:"Date Tools",
+    desc:"Work with dates.",
+    cat:"other"
+  },
+  {
+    id:"uuid",
+    icon:"🆔",
+    name:"UUID Generator",
+    desc:"Generate UUID v4 values.",
+    cat:"generators"
+  },
+  {
+    id:"ip",
+    icon:"🌐",
+    name:"IP Information",
+    desc:"Look up public IP information.",
+    cat:"security"
+  },
+  {
+    id:"email",
+    icon:"📧",
+    name:"Email Generator",
+    desc:"Create a temporary Mail.tm inbox.",
+    cat:"generators"
+  }
+];
+
+let currentCategory = "all";
+let favorites = JSON.parse(localStorage.getItem("mask_favorites") || "[]");
+let recent = JSON.parse(localStorage.getItem("mask_recent") || "[]");
+
+function $(id){
+  return document.getElementById(id);
+}
+
+function escapeHTML(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function saveState(){
+  localStorage.setItem("mask_favorites",JSON.stringify(favorites));
+  localStorage.setItem("mask_recent",JSON.stringify(recent));
+}
+
+function addRecent(id){
+  recent = [id,...recent.filter(x=>x!==id)].slice(0,6);
+  saveState();
+}
+
+function toggleFavorite(id){
+  if(favorites.includes(id)){
+    favorites = favorites.filter(x=>x!==id);
+  }else{
+    favorites.push(id);
+  }
+
+  saveState();
+  renderAll();
+}
+
+function toolCard(tool){
+  const active = favorites.includes(tool.id) ? "active" : "";
+
+  return `
+    <div class="tool" onclick="openTool('${tool.id}')">
+      <button
+        class="star ${active}"
+        onclick="event.stopPropagation();toggleFavorite('${tool.id}')"
+        aria-label="Favorite"
+      >★</button>
+
+      <div class="tool-icon">${tool.icon}</div>
+      <div class="tool-name">${escapeHTML(tool.name)}</div>
+      <div class="tool-desc">${escapeHTML(tool.desc)}</div>
+    </div>
+  `;
+}
+
+function filteredTools(){
+  const query = $("search").value.trim().toLowerCase();
+
+  return tools.filter(t=>{
+    const categoryOk =
+      currentCategory==="all" ||
+      t.cat===currentCategory;
+
+    const searchOk =
+      !query ||
+      t.name.toLowerCase().includes(query) ||
+      t.desc.toLowerCase().includes(query);
+
+    return categoryOk && searchOk;
+  });
+}
+
+function renderAll(){
+
+  const list = filteredTools();
+
+  $("toolsGrid").innerHTML =
+    list.map(toolCard).join("") ||
+    `<div class="result muted">No tools found.</div>`;
+
+  const quickIds = ["password","username","qr","email"];
+  $("quickGrid").innerHTML =
+    quickIds.map(id=>tools.find(t=>t.id===id)).map(toolCard).join("");
+
+  const recentTools = recent
+    .map(id=>tools.find(t=>t.id===id))
+    .filter(Boolean);
+
+  $("recentGrid").innerHTML =
+    recentTools.length
+      ? recentTools.map(toolCard).join("")
+      : `<div class="result muted">No recently used tools.</div>`;
+
+  const favoriteTools = favorites
+    .map(id=>tools.find(t=>t.id===id))
+    .filter(Boolean);
+
+  $("favoritesGrid").innerHTML =
+    favoriteTools.length
+      ? favoriteTools.map(toolCard).join("")
+      : `<div class="result muted">No favorites yet.</div>`;
+}
+
+function setCategory(cat){
+  currentCategory = cat;
+
+  document.querySelectorAll(".category").forEach(btn=>{
+    btn.classList.toggle(
+      "active",
+      btn.dataset.cat===cat
+    );
+  });
+
+  renderAll();
+}
+
+document.querySelectorAll(".category").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    setCategory(btn.dataset.cat);
+  });
+});
+
+$("search").addEventListener("input",renderAll);
+
+function openTool(id){
+
+  addRecent(id);
+
+  $("home").classList.add("hidden");
+  $("toolPanel").classList.remove("hidden");
+
+  renderTool(id);
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+function closeTool(){
+  $("toolPanel").classList.add("hidden");
+  $("home").classList.remove("hidden");
+  renderAll();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+function renderTool(id){
+
+  const panel = $("toolPanel");
+
+  if(id==="password"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🔐 Password Generator</h2>
+      <p>Generate a strong random password.</p>
+
+      <label class="label">Length</label>
+      <input id="passLength" class="input" type="number" min="6" max="128" value="18">
+
+      <button class="btn primary" onclick="generatePassword()">
+        GENERATE PASSWORD
+      </button>
+
+      <div id="passResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="strength"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🛡️ Password Strength</h2>
+      <p>Check how strong a password is.</p>
+
+      <input id="strengthInput" class="input" type="password"
+        placeholder="Enter password">
+
+      <button class="btn primary" onclick="checkStrength()">
+        CHECK
+      </button>
+
+      <div id="strengthResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="username"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>👤 Username Generator</h2>
+      <p>Generate random usernames.</p>
+
+      <button class="btn primary" onclick="generateUsername()">
+        GENERATE USERNAME
+      </button>
+
+      <div id="usernameResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="qr"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>▦ QR Code</h2>
+      <p>Create a QR code from text or a link.</p>
+
+      <input id="qrInput" class="input"
+        placeholder="https://example.com">
+
+      <button class="btn primary" onclick="generateQR()">
+        GENERATE QR
+      </button>
+
+      <div id="qrResult" class="result hidden">
+        <div id="qrBox" class="qr"></div>
+      </div>
+    `;
+
+    loadQRLibrary();
+    return;
+  }
+
+  if(id==="text"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>✎ Text Tools</h2>
+      <p>Transform and analyze text.</p>
+
+      <textarea id="textInput" class="textarea"
+        placeholder="Write something..."></textarea>
+
+      <div class="row">
+        <button class="btn secondary" onclick="textUpper()">UPPER</button>
+        <button class="btn secondary" onclick="textLower()">LOWER</button>
+      </div>
+
+      <button class="btn primary" onclick="textCount()">
+        COUNT
+      </button>
+
+      <div id="textResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="color"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🎨 Color Tools</h2>
+      <p>Generate a random color.</p>
+
+      <button class="btn primary" onclick="generateColor()">
+        GENERATE COLOR
+      </button>
+
+      <div id="colorResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="number"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🔢 Number Generator</h2>
+      <p>Generate a random number inside a range.</p>
+
+      <div class="row">
+        <input id="numMin" class="input" type="number" value="1">
+        <input id="numMax" class="input" type="number" value="100">
+      </div>
+
+      <button class="btn primary" onclick="generateNumber()">
+        GENERATE
+      </button>
+
+      <div id="numberResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="timer"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>⏱️ Timer</h2>
+      <p>Simple countdown timer.</p>
+
+      <input id="timerSeconds" class="input"
+        type="number" min="1" value="60">
+
+      <button class="btn primary" onclick="startTimer()">
+        START TIMER
+      </button>
+
+      <div id="timerResult" class="result">
+        00:00
+      </div>
+    `;
+    return;
+  }
+
+  if(id==="date"){
+    const now = new Date();
+
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>📅 Date Tools</h2>
+      <p>Useful date information.</p>
+
+      <div class="result">
+        <strong>Today</strong><br><br>
+        ${escapeHTML(now.toLocaleString())}
+      </div>
+    `;
+    return;
+  }
+
+  if(id==="uuid"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🆔 UUID Generator</h2>
+      <p>Generate a UUID v4.</p>
+
+      <button class="btn primary" onclick="generateUUID()">
+        GENERATE UUID
+      </button>
+
+      <div id="uuidResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="ip"){
+    panel.innerHTML = `
+      <div class="back" onclick="closeTool()">← Back to tools</div>
+      <h2>🌐 IP Information</h2>
+      <p>Enter a public IP address to view basic information.</p>
+
+      <input id="ipInput" class="input"
+        placeholder="8.8.8.8">
+
+      <button class="btn primary" onclick="lookupIP()">
+        LOOKUP
+      </button>
+
+      <div id="ipResult" class="result hidden"></div>
+    `;
+    return;
+  }
+
+  if(id==="email"){
+    renderEmailTool();
+  }
+}
+
+/* =========================================================
+   BASIC TOOLS
+   ========================================================= */
+
+function randomChars(length, chars){
+  let out="";
+  const array=new Uint32Array(length);
+
+  crypto.getRandomValues(array);
+
+  for(let i=0;i<length;i++){
+    out+=chars[array[i]%chars.length];
+  }
+
+  return out;
+}
+
+function generatePassword(){
+
+  const length=Math.min(
+    128,
+    Math.max(
+      6,
+      Number($("passLength").value)||18
+    )
+  );
+
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ" +
+    "abcdefghijkmnopqrstuvwxyz" +
+    "23456789!@#$%^&*_-+=";
+
+  const password=randomChars(length,chars);
+
+  const result=$("passResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    <strong>${escapeHTML(password)}</strong>
+    <button class="btn secondary"
+      onclick="navigator.clipboard.writeText(${JSON.stringify(password)})">
+      COPY
+    </button>
+  `;
+}
+
+function checkStrength(){
+
+  const value=$("strengthInput").value;
+  const result=$("strengthResult");
+
+  if(!value){
+    result.classList.remove("hidden");
+    result.innerHTML=`<span class="error">Enter a password.</span>`;
+    return;
+  }
+
+  let score=0;
+
+  if(value.length>=8) score++;
+  if(value.length>=12) score++;
+  if(/[A-Z]/.test(value)) score++;
+  if(/[a-z]/.test(value)) score++;
+  if(/[0-9]/.test(value)) score++;
+  if(/[^A-Za-z0-9]/.test(value)) score++;
+
+  let text="Weak";
+
+  if(score>=5) text="Very strong";
+  else if(score>=4) text="Strong";
+  else if(score>=3) text="Medium";
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    <strong>${escapeHTML(text)}</strong>
+    <div class="muted" style="margin-top:6px">
+      Score: ${score}/6
+    </div>
+  `;
+}
+
+function generateUsername(){
+
+  const a=[
+    "void","mask","ghost","shadow","zero",
+    "dark","night","pixel","core","neo"
+  ];
+
+  const b=[
+    "x","dev","byte","404","77","01",
+    "lab","sys","null","bot"
+  ];
+
+  const username=
+    a[Math.floor(Math.random()*a.length)] +
+    b[Math.floor(Math.random()*b.length)] +
+    Math.floor(Math.random()*999);
+
+  const result=$("usernameResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    <strong>${username}</strong>
+    <button class="btn secondary"
+      onclick="navigator.clipboard.writeText(${JSON.stringify(username)})">
+      COPY
+    </button>
+  `;
+}
+
+function loadQRLibrary(){
+
+  if(window.QRCode) return;
+
+  const script=document.createElement("script");
+
+  script.src=
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+
+  script.onload=()=>{
+    console.log("QR library loaded");
+  };
+
+  script.onerror=()=>{
+    console.warn("QR library unavailable");
+  };
+
+  document.head.appendChild(script);
+}
+
+function generateQR(){
+
+  const text=$("qrInput").value.trim();
+  const result=$("qrResult");
+  const box=$("qrBox");
+
+  result.classList.remove("hidden");
+  box.innerHTML="";
+
+  if(!text){
+    box.innerHTML=`<span class="error">Enter text or a link.</span>`;
+    return;
+  }
+
+  if(!window.QRCode){
+    box.innerHTML=`
+      <span class="error">
+        QR library unavailable. Check your connection and try again.
+      </span>
+    `;
+    return;
+  }
+
+  new QRCode(box,{
+    text,
+    width:220,
+    height:220,
+    colorDark:"#000000",
+    colorLight:"#ffffff"
+  });
+}
+
+function textUpper(){
+  $("textInput").value=$("textInput").value.toUpperCase();
+}
+
+function textLower(){
+  $("textInput").value=$("textInput").value.toLowerCase();
+}
+
+function textCount(){
+
+  const text=$("textInput").value;
+
+  const result=$("textResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    Characters: <strong>${text.length}</strong><br>
+    Words: <strong>${text.trim()?text.trim().split(/\s+/).length:0}</strong>
+  `;
+}
+
+function generateColor(){
+
+  const chars="0123456789ABCDEF";
+  let hex="#";
+
+  for(let i=0;i<6;i++){
+    hex+=chars[Math.floor(Math.random()*16)];
+  }
+
+  const result=$("colorResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    <div style="
+      height:120px;
+      border-radius:14px;
+      background:${hex};
+      border:1px solid rgba(255,255,255,.12);
+    "></div>
+
+    <strong style="display:block;margin-top:12px">
+      ${hex}
+    </strong>
+
+    <button class="btn secondary"
+      onclick="navigator.clipboard.writeText('${hex}')">
+      COPY
+    </button>
+  `;
+}
+
+function generateNumber(){
+
+  let min=Number($("numMin").value);
+  let max=Number($("numMax").value);
+
+  if(min>max){
+    [min,max]=[max,min];
+  }
+
+  const number=
+    Math.floor(Math.random()*(max-min+1))+min;
+
+  const result=$("numberResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`<strong>${number}</strong>`;
+}
+
+let timerInterval=null;
+
+function startTimer(){
+
+  clearInterval(timerInterval);
+
+  let seconds=Math.max(
+    1,
+    Number($("timerSeconds").value)||60
+  );
+
+  const result=$("timerResult");
+
+  function update(){
+
+    const min=String(Math.floor(seconds/60)).padStart(2,"0");
+    const sec=String(seconds%60).padStart(2,"0");
+
+    result.innerHTML=`<strong>${min}:${sec}</strong>`;
+
+    if(seconds<=0){
+      clearInterval(timerInterval);
+      result.innerHTML=`<strong class="success">DONE</strong>`;
+      return;
+    }
+
+    seconds--;
+  }
+
+  update();
+
+  timerInterval=setInterval(update,1000);
+}
+
+function generateUUID(){
+
+  const uuid=
+    crypto.randomUUID
+      ? crypto.randomUUID()
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0;
+          const v=c==="x"?r:(r&3|8);
+          return v.toString(16);
+        });
+
+  const result=$("uuidResult");
+
+  result.classList.remove("hidden");
+
+  result.innerHTML=`
+    <strong>${uuid}</strong>
+    <button class="btn secondary"
+      onclick="navigator.clipboard.writeText('${uuid}')">
+      COPY
+    </button>
+  `;
+}
+
+async function lookupIP(){
+
+  const ip=$("ipInput").value.trim();
+  const result=$("ipResult");
+
+  result.classList.remove("hidden");
+  result.innerHTML=`<span class="muted">Loading...</span>`;
+
+  if(!ip){
+    result.innerHTML=`<span class="error">Enter an IP address.</span>`;
+    return;
+  }
+
+  try{
+
+    const response=await fetch(
+      "https://ip-api.com/json/" +
+      encodeURIComponent(ip) +
+      "?fields=status,message,query,country,regionName,city,isp,org,as"
+    );
+
+    const data=await response.json();
+
+    if(data.status!=="success"){
+      throw new Error(data.message||"Lookup failed");
+    }
+
+    result.innerHTML=`
+      <strong>${escapeHTML(data.query)}</strong><br><br>
+      Country: ${escapeHTML(data.country)}<br>
+      Region: ${escapeHTML(data.regionName)}<br>
+      City: ${escapeHTML(data.city)}<br>
+      ISP: ${escapeHTML(data.isp)}<br>
+      Organization: ${escapeHTML(data.org)}
+    `;
+
+  }catch(error){
+
+    result.innerHTML=
+      `<span class="error">${escapeHTML(error.message)}</span>`;
+  }
+}
+
+/* =========================================================
+   MAIL.TM ENGINE — v0.4.1
+   ========================================================= */
+
+let mailState={
+  domains:[],
+  email:"",
+  password:"",
+  token:"",
+  seen:new Set(),
+  polling:null
+};
+
+async function mailFetch(path,options={},timeout=15000){
+
+  const controller=new AbortController();
+
+  const timer=setTimeout(
+    ()=>controller.abort(),
+    timeout
+  );
+
+  try{
+
+    const response=await fetch(
+      MAIL_API + path,
+      {
+        ...options,
+        signal:controller.signal,
+        mode:"cors",
+        cache:"no-store",
+        headers:{
+          Accept:"application/json",
+          ...(options.headers||{})
+        }
+      }
+    );
+
+    clearTimeout(timer);
+
+    const text=await response.text();
+
+    let data=null;
+
+    try{
+      data=text ? JSON.parse(text) : null;
+    }catch{
+      data=null;
+    }
+
+    if(!response.ok){
+
+      const message =
+        data?.message ||
+        data?.detail ||
+        `Mail.tm returned HTTP ${response.status}`;
+
+      const error=new Error(message);
+      error.status=response.status;
+      throw error;
+    }
+
+    return data;
+
+  }catch(error){
+
+    clearTimeout(timer);
+
+    if(error.name==="AbortError"){
+      throw new Error(
+        "Request timed out. Mail.tm took too long to respond."
+      );
+    }
+
+    if(error instanceof TypeError){
+      throw new Error(
+        "The browser blocked the connection to Mail.tm. " +
+        "Try opening Mask Toolbox from a normal HTTPS page or hosted preview."
+      );
+    }
+
+    throw error;
+  }
+}
+
+async function loadMailDomains(){
+
+  const select=$("mailDomain");
+  const status=$("mailStatus");
+
+  select.innerHTML=
+    `<option>Loading domains...</option>`;
+
+  select.disabled=true;
+
+  status.className="result";
+  status.innerHTML=
+    `<span class="muted">Connecting to Mail.tm...</span>`;
+
+  try{
+
+    const data=await mailFetch("/domains?page=1");
+
+    const members=
+      Array.isArray(data?.["hydra:member"])
+        ? data["hydra:member"]
+        : [];
+
+    const active=members.filter(
+      d=>d && d.domain && d.isActive!==false
+    );
+
+    if(!active.length){
+      throw new Error(
+        "Mail.tm returned no active domains."
+      );
+    }
+
+    mailState.domains=active;
+
+    select.innerHTML=active.map((d,i)=>`
+      <option value="${escapeHTML(d.domain)}">
+        ${escapeHTML(d.domain)}
+      </option>
+    `).join("");
+
+    select.disabled=false;
+
+    status.className="result";
+
+    status.innerHTML=
+      `<span class="success">✓ ${active.length} domain(s) loaded.</span>`;
+
+  }catch(error){
+
+    select.innerHTML=
+      `<option>Unable to load domains</option>`;
+
+    select.disabled=true;
+
+    status.className="result";
+
+    status.innerHTML=`
+      <div class="error">
+        Connection error: ${escapeHTML(error.message)}
+      </div>
+
+      <div class="muted" style="margin-top:8px">
+        Mail.tm is reachable, but this preview may be blocking
+        browser API requests.
+      </div>
+    `;
+  }
+}
+
+function renderEmailTool(){
+
+  if(mailState.polling){
+    clearInterval(mailState.polling);
+    mailState.polling=null;
+  }
+
+  $("toolPanel").innerHTML=`
+    <div class="back" onclick="closeEmailTool()">← Back to tools</div>
+
+    <h2>📧 Email Generator</h2>
+
+    <p>
+      Create a temporary Mail.tm inbox directly from Mask Toolbox.
+    </p>
+
+    <label class="label">Domain</label>
+
+    <select id="mailDomain" class="select">
+      <option>Loading domains...</option>
+    </select>
+
+    <button
+      id="mailRefreshDomains"
+      class="btn secondary"
+      onclick="loadMailDomains()"
+    >
+      ↻ REFRESH DOMAINS
+    </button>
+
+    <label class="label">Username Mode</label>
+
+    <select id="mailMode" class="select"
+      onchange="toggleCustomMailName()">
+      <option value="random">Random username</option>
+      <option value="custom">Custom username</option>
+    </select>
+
+    <div id="customMailBox" class="hidden">
+      <label class="label">Username</label>
+      <input
+        id="mailCustomName"
+        class="input"
+        placeholder="myname"
+        autocomplete="off"
+      >
+    </div>
+
+    <label class="label">Password</label>
+
+    <input
+      id="mailPassword"
+      class="input"
+      type="password"
+      minlength="6"
+      placeholder="Minimum 6 characters"
+      autocomplete="new-password"
+    >
+
+    <button
+      id="mailCreate"
+      class="btn primary"
+      onclick="createTempEmail()"
+    >
+      CREATE TEMP EMAIL
+    </button>
+
+    <div id="mailStatus" class="result">
+      <span class="muted">Loading Mail.tm domains...</span>
+    </div>
+
+    <div id="mailAccount" class="result hidden"></div>
+
+    <div id="mailInbox" class="result hidden"></div>
+
+    <div id="mailMessages"></div>
+
+    <div class="muted" style="margin-top:16px;font-size:11px">
+      Temporary email powered by Mail.tm.
+    </div>
+  `;
+
+  loadMailDomains();
+}
+
+function toggleCustomMailName(){
+
+  $("customMailBox").classList.toggle(
+    "hidden",
+    $("mailMode").value!=="custom"
+  );
+}
+
+function randomMailName(){
+
+  const chars="abcdefghijklmnopqrstuvwxyz0123456789";
+
+  return randomChars(
+    10,
+    chars
+  );
+}
+
+function sanitizeMailName(value){
+
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g,"")
+    .slice(0,40);
+}
+
+async function createTempEmail(){
+
+  const domain=$("mailDomain").value;
+  const password=$("mailPassword").value.trim();
+  const status=$("mailStatus");
+  const button=$("mailCreate");
+
+  if(!domain || domain==="Unable to load domains"){
+    status.innerHTML=
+      `<span class="error">Load a Mail.tm domain first.</span>`;
+    return;
+  }
+
+  if(password.length<6){
+    status.innerHTML=
+      `<span class="error">Password must contain at least 6 characters.</span>`;
+    return;
+  }
+
+  let local;
+
+  if($("mailMode").value==="custom"){
+    local=sanitizeMailName(
+      $("mailCustomName").value.trim()
+    );
+
+    if(!local){
+      status.innerHTML=
+        `<span class="error">Enter a valid username.</span>`;
+      return;
+    }
+
+  }else{
+    local=randomMailName();
+  }
+
+  const email=`${local}@${domain}`;
+
+  button.disabled=true;
+  button.textContent="CREATING...";
+
+  status.className="result";
+  status.innerHTML=
+    `<span class="muted">Creating ${escapeHTML(email)}...</span>`;
+
+  try{
+
+    const account=await mailFetch(
+      "/accounts",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          address:email,
+          password:password
+        })
+      }
+    );
+
+    if(!account || !account.id){
+      throw new Error(
+        "Mail.tm did not return a valid account."
+      );
+    }
+
+    status.innerHTML=
+      `<span class="success">✓ Email account created.</span>`;
+
+    const tokenData=await mailFetch(
+      "/token",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          address:email,
+          password:password
+        })
+      }
+    );
+
+    if(!tokenData?.token){
+      throw new Error(
+        "Account created, but Mail.tm did not return a token."
+      );
+    }
+
+    mailState.email=email;
+    mailState.password=password;
+    mailState.token=tokenData.token;
+    mailState.seen=new Set();
+
+    showMailAccount();
+
+    await refreshInbox();
+
+    if(mailState.polling){
+      clearInterval(mailState.polling);
+    }
+
+    mailState.polling=setInterval(
+      refreshInbox,
+      10000
+    );
+
+  }catch(error){
+
+    status.className="result";
+
+    status.innerHTML=`
+      <div class="error">
+        ${escapeHTML(error.message)}
+      </div>
+
+      <div class="muted" style="margin-top:8px">
+        If the error says the browser blocked the request,
+        the current editor/preview is restricting external API access.
+      </div>
+    `;
+
+  }finally{
+
+    button.disabled=false;
+    button.textContent="CREATE TEMP EMAIL";
+  }
+}
+
+function showMailAccount(){
+
+  const box=$("mailAccount");
+
+  box.classList.remove("hidden");
+
+  box.innerHTML=`
+    <div class="email-box">
+
+      <div class="success">
+        ✓ TEMP EMAIL READY
+      </div>
+
+      <div class="email-main">
+        ${escapeHTML(mailState.email)}
+      </div>
+
+      <div class="muted">
+        Password: ${escapeHTML(mailState.password)}
+      </div>
+
+      <button class="btn secondary"
+        onclick="copyMailCredentials()">
+        COPY CREDENTIALS
+      </button>
+
+      <button class="btn secondary"
+        onclick="refreshInbox()">
+        ↻ REFRESH INBOX
+      </button>
+
+    </div>
+  `;
+}
+
+async function copyMailCredentials(){
+
+  const text=
+    `Email: ${mailState.email}\n`+
+    `Password: ${mailState.password}`;
+
+  try{
+    await navigator.clipboard.writeText(text);
+
+    $("mailAccount").insertAdjacentHTML(
+      "beforeend",
+      `<div class="success" style="margin-top:10px">
+        ✓ Copied
+      </div>`
+    );
+
+  }catch{
+    alert(text);
+  }
+}
+
+async function refreshInbox(){
+
+  if(!mailState.token) return;
+
+  const inbox=$("mailInbox");
+  const messagesBox=$("mailMessages");
+
+  if(!inbox || !messagesBox) return;
+
+  inbox.classList.remove("hidden");
+
+  try{
+
+    const data=await mailFetch(
+      "/messages?page=1",
+      {
+        headers:{
+          Authorization:
+            "Bearer " + mailState.token
+        }
+      }
+    );
+
+    const messages=
+      Array.isArray(data?.["hydra:member"])
+        ? data["hydra:member"]
+        : [];
+
+    inbox.innerHTML=`
+      <strong>📥 Inbox</strong><br>
+      <span class="muted">
+        ${messages.length} message(s)
+      </span>
+    `;
+
+    const ordered=[...messages].reverse();
+
+    for(const message of ordered){
+
+      if(!message?.id) continue;
+
+      if(mailState.seen.has(message.id)){
+        continue;
+      }
+
+      mailState.seen.add(message.id);
+
+      await renderMailMessage(message);
+    }
+
+  }catch(error){
+
+    inbox.innerHTML=`
+      <div class="error">
+        Inbox error: ${escapeHTML(error.message)}
+      </div>
+    `;
+  }
+}
+
+async function renderMailMessage(message){
+
+  const container=$("mailMessages");
+
+  if(!container) return;
+
+  const box=document.createElement("div");
+
+  box.className="message";
+
+  box.innerHTML=`
+    <div class="message-subject">
+      ${escapeHTML(message.subject || "(No subject)")}
+    </div>
+
+    <div class="message-from">
+      From:
+      ${escapeHTML(message.from?.address || "Unknown")}
+    </div>
+
+    <div class="message-body">
+      Loading message...
+    </div>
+  `;
+
+  container.prepend(box);
+
+  try{
+
+    const details=await mailFetch(
+      "/messages/" + encodeURIComponent(message.id),
+      {
+        headers:{
+          Authorization:
+            "Bearer " + mailState.token
+        }
+      }
+    );
+
+    const body=
+      details?.text ||
+      message?.intro ||
+      "(Empty message)";
+
+    box.querySelector(".message-body").textContent=
+      body.slice(0,5000);
+
+    /*
+      Mail.tm documents PATCH /messages/{id}
+      as the operation that marks a message as read.
+    */
+
+    try{
+
+      await mailFetch(
+        "/messages/" + encodeURIComponent(message.id),
+        {
+          method:"PATCH",
+          headers:{
+            Authorization:
+              "Bearer " + mailState.token
+          }
+        }
+      );
+
+    }catch{
+      // Reading the message is more important than marking it read.
+    }
+
+  }catch(error){
+
+    box.querySelector(".message-body").innerHTML=
+      `<span class="error">
+        ${escapeHTML(error.message)}
+      </span>`;
+  }
+}
+
+function closeEmailTool(){
+
+  if(mailState.polling){
+    clearInterval(mailState.polling);
+    mailState.polling=null;
+  }
+
+  closeTool();
+}
+
+/* =========================================================
+   THEME
+   ========================================================= */
+
+const savedTheme=
+  localStorage.getItem("mask_theme");
+
+if(savedTheme==="light"){
+  document.body.classList.add("light");
+  $("themeBtn").textContent="☀";
+}
+
+$("themeBtn").addEventListener("click",()=>{
+
+  const light=
+    document.body.classList.toggle("light");
+
+  localStorage.setItem(
+    "mask_theme",
+    light ? "light" : "dark"
+  );
+
+  $("themeBtn").textContent=
+    light ? "☀" : "☾";
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderAll();
+</script>
+
+</body>
+</html>
